@@ -13,4 +13,15 @@ section {
   flex-direction: column;
 }
 
+#searchText {
+  width: 200px
+}
+
+.optionsBar {
+  display:flex;
+  flex-direction: row;
+  align-content: center;
+  justify-content:stretch;
+}
+
 #map { height: 1080px; width: 1920px}

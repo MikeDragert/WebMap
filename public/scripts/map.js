@@ -111,6 +111,18 @@ $(document).ready(function() {
     } 
   })
 
+  $('#searchText').on('keydown', (event) => {
+    if (event.keyCode === 13) {
+      let searchText = $('#searchText').val();
+      $('#searchText').val('');
+      console.log(searchText);
+
+      //perform search on mapObjects with searchText
+      // add to article #searchResults
+    }
+
+  })
+
   $('#map').focus();
 
   //for every item created - save points array, and tooltip text

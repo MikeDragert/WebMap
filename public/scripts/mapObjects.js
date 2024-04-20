@@ -7,11 +7,12 @@ export const modeType = {
 const LINEWEIGHT = 4;
 const LINEOPACITY = 0.75;
 const POINTCLICKBOUNDS = 0.005;  //this maybe should scale with the zoom
+const TOOLTIPTEXTDEFAULT = "Type here";
 
 export class MapObject {
   _type = undefined;
   _points = [];
-  _tooltipContent = '';
+  _tooltipContent = TOOLTIPTEXTDEFAULT;
   _editingTooltip = false;
   _mapElement = undefined;
   _callbacks = undefined;
@@ -64,12 +65,18 @@ export class MapObject {
   }
   
   addCharToTooltipContent = function(char) {
+    if (this._tooltipContent === TOOLTIPTEXTDEFAULT) {
+      this._tooltipContent = "";
+    }
     this._tooltipContent += char;
     this._displayCurrentTooltipText();
   }
   
   removeLastCharFromTooltipContent = function () {
-    this._currentTooltipText.slice(0,-1);  
+    this._tooltipContent.slice(0,-1);  
+    if (this._tooltipContent === '') {
+      this._tooltipContent = TOOLTIPTEXTDEFAULT;
+    }
     this._displayCurrentTooltipText();
   }
 
@@ -94,7 +101,7 @@ export class MapObject {
         }
       });
   
-    if (this._tooltipContent.length === 0) {
+    if ((this._tooltipContent.length === 0) || (this._tooltipContent === TOOLTIPTEXTDEFAULT)) {
       this.toggleTooltipEdit(map);
     }
   }
@@ -262,7 +269,7 @@ export class MapObject {
 }
 
 export class Marker extends MapObject {
-  constructor (points, callbacks, tooltipContent = '') {
+  constructor (points, callbacks, tooltipContent = TOOLTIPTEXTDEFAULT) {
     super();
     this._type = modeType.POINT;
     this._points = points;
@@ -273,7 +280,7 @@ export class Marker extends MapObject {
 }
 
 export class Line extends MapObject {
-  constructor (points, callbacks, tooltipContent = '') {
+  constructor (points, callbacks, tooltipContent = TOOLTIPTEXTDEFAULT) {
     super();
     this._type = modeType.LINE;
     this._points = points;
@@ -284,7 +291,7 @@ export class Line extends MapObject {
 }
 
 export class Rectangle extends MapObject {
-  constructor (points, callbacks, tooltipContent = '') {
+  constructor (points, callbacks, tooltipContent = TOOLTIPTEXTDEFAULT) {
     super();
     this._type = modeType.RECTANGLE;
     this._points = points;

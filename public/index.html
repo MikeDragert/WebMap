@@ -29,9 +29,15 @@
     <h1> Web Map made with Leaflet!</h1>
     <article>
       <section id="sideBar">
-        <button id="pointButton">Point</button>
-        <button id="lineButton">Line</button>
-        <button id="rectangleButton">Rectangle</button>
+        <article class="optionsBar">
+          <button id="pointButton">Point</button>
+          <button id="lineButton">Line</button>
+          <button id="rectangleButton">Rectangle</button>
+        </article>
+        <input type="text" id="searchText" placeholder="Enter search...">
+        <article id="searchResults">
+
+        </article>
       </section>
       <div id="map"></div>
     </article>

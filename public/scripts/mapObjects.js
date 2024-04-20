@@ -26,6 +26,10 @@ export class MapObject {
     return this._editingTooltip;
   }
 
+  get tooltipContent() {
+    return this._tooltipContent;
+  }
+
   get type() {
     return this._type;
   }
@@ -73,7 +77,7 @@ export class MapObject {
   }
   
   removeLastCharFromTooltipContent = function () {
-    this._tooltipContent.slice(0,-1);  
+    this._tooltipContent = this._tooltipContent.slice(0,-1);  
     if (this._tooltipContent === '') {
       this._tooltipContent = TOOLTIPTEXTDEFAULT;
     }
@@ -86,6 +90,7 @@ export class MapObject {
     } else {
       this._mapElement.getTooltip().setContent(this._tooltipContent );
     }
+    this._callbacks.displayMapObjects();
   }
   
   _createTooltip = function (map) {
@@ -149,7 +154,6 @@ export class MapObject {
     }
 
     if (this._type = modeType.POINT) {
-      //todo: should we check _mapElement is undefined?
       if (this._mapElement === undefined) {
         this._mapElement = L.marker(this._points[0]);
         this._mapElement.on('click', (e) => {
@@ -167,7 +171,7 @@ export class MapObject {
     }
   }
 
-  _drawMapObject = function(L, map, targetPoint = undefined) {//;(currentPoints, currentMode, tooltipText, drawing = false) {
+  _drawMapObject = function(L, map, targetPoint = undefined) {
     let targetPoints = [...this._points];
     if ((targetPoints.length === 1) && (targetPoint instanceof L.LatLng)) {
       targetPoints.push(targetPoint);

@@ -3,6 +3,7 @@ import {modeType, Marker, Line, Rectangle } from './mapObjects.js';
 
 let map = undefined;
 let mapObjects = [];
+let searchWords = "";
 
 let mode = modeType.POINT;
 let ignoreNextClick = false;
@@ -36,6 +37,7 @@ const clearAllEditingObjects = function(exception) {
 
 const removeMapObject = function(removeObject) {
   mapObjects = mapObjects.filter(mapObject => mapObject !== removeObject);
+  displayMapObjects();
 }
 
 const handleKey = function(keyEvent) {
@@ -55,6 +57,21 @@ const handleKey = function(keyEvent) {
       currentObjectEditing.addCharToTooltipContent(keyEvent.key);
     }
   }
+}
+
+//todo: we may want the option to just update one from the list, instead of removing all and recreating on typing text
+const displayMapObjects = function() {
+  let filteredMapObjects = mapObjects;
+  if (searchWords.length > 0) {
+    filteredMapObjects = mapObjects.filter( mapObject => {
+      return searchWords.reduce((found, searchWord) => found || mapObject.tooltipContent.includes(searchWord), false)  
+    })
+  }
+  
+  $("#searchResults").empty();
+  filteredMapObjects.forEach( mapObject => {
+    $("#searchResults").append(`<span>${mapObject.tooltipContent}</span>`)
+  })
 }
 
 $(document).ready(function() {
@@ -82,25 +99,25 @@ $(document).ready(function() {
     }
     switch(mode) {
       case modeType.POINT:
-        mapObjects.push(new Marker([e.latlng], { clearAllEditingObjects , removeMapObject, setIgnoreNextClick} ));
+        mapObjects.push(new Marker([e.latlng], { clearAllEditingObjects , removeMapObject, setIgnoreNextClick, displayMapObjects} ));
         mapObjects[mapObjects.length-1].createOnMap(L, map);
-        console.log(mapObjects);
+        displayMapObjects();
         break;
       case modeType.LINE:
-        mapObjects.push(new Line([e.latlng], { clearAllEditingObjects , removeMapObject, setIgnoreNextClick} ));
+        mapObjects.push(new Line([e.latlng], { clearAllEditingObjects , removeMapObject, setIgnoreNextClick, displayMapObjects} ));
         mapObjects[mapObjects.length-1].createOnMap(L, map, e.latlng);
+        displayMapObjects();
         break;
       case modeType.RECTANGLE:
-        mapObjects.push(new Rectangle([e.latlng], { clearAllEditingObjects , removeMapObject, setIgnoreNextClick} ));
+        mapObjects.push(new Rectangle([e.latlng], { clearAllEditingObjects , removeMapObject, setIgnoreNextClick, displayMapObjects} ));
         mapObjects[mapObjects.length-1].createOnMap(L, map, e.latlng);
+        displayMapObjects();
         break;
     }
   })
   
   map.on('mousemove', (e) => {
-    //todo: we need to properly figure out what we are editing!
-    let editObject = getCurrentEditingSizeObject()
-    
+    let editObject = getCurrentEditingSizeObject()    
     if (editObject) {
       switch(mode) {
         case modeType.LINE:
@@ -114,37 +131,41 @@ $(document).ready(function() {
   $('#searchText').on('keydown', (event) => {
     if (event.keyCode === 13) {
       let searchText = $('#searchText').val();
+      searchWords = searchText.split(' ');
       $('#searchText').val('');
-      console.log(searchText);
-
-      //perform search on mapObjects with searchText
-      // add to article #searchResults
+      displayMapObjects();
     }
-
   })
 
   $('#map').focus();
 
-  //for every item created - save points array, and tooltip text
-  //    needs to be updatable from map (delete, or change points, or change text)
-
-
-  //finally, allow search of all those text boxes
-    // what will this do?  return all created items that match?
-    //  put in list?
-    //  allow click in list to zoom to map
-    // can we keep the values in one array or object?
-    // or maybe keep all the added objects in an array, with the text under each object
-
-
+  //searching improvements
+    // show term searched for somewhere
+    //  \-> X for clearing search results?
+    //  click on search item - pan map to point, or center of line/rectangle
+    //  list section allow scroll if too many items
+    
   //todo:  some quality of life features
   //      1 - escape while drawing should cancel the draw
   //      2 - enter should end typing in box
   //        |-> shift enter should add new line
-  //     
-  //      3 - need select area on points scale with zoom - or based on pixels and not long/lat
+  //      3 - allow moving the items with long click, or click drag
+  //          \-> needs to work with deleting too
+  //      4 - need select area on points scale with zoom - or based on pixels and not long/lat
+  // OR 1 - click once to edit, click again (or escape) to stop editing
+  //      - while selected - clicking a point can resize
+  //      - long click to drage
+  //      - delete key to delete
 
   // todo:  we really want it to load to the persons actual location if we can
+
+  //styling
+  //  1 - colour scheme
+  //     \-> Title colour, background colour, text color, border colors
+  //  2 - Buttons styling - font-awesome?
+  //  3 - map items styling
+  //    \-> drawing/selected colour, finished colour, tooltip styling
+  //  4 - clear title bar?
 
 
 })

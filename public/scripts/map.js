@@ -67,8 +67,36 @@ const displayMapObjects = function() {
       return searchWords.reduce((found, searchWord) => found || mapObject.tooltipContent.toLowerCase().includes(searchWord), false)  
     })
   }
-  
   $("#searchResults").empty();
+
+  // if (searchWords.length > 0) {
+  //   let newSpan = $('<span />')
+  //     .addClass('searchUsed')
+  //     .attr('id','searchUsed')
+  //     .html(`Search: ${searchWords.join(', ')}`)
+  //     .on('click', () => {
+  //       searchWords = [];
+  //       displayMapObjects();
+  //     })
+  if (searchWords.length > 0) {
+    let newDiv = $('<div />')
+      .addClass('searchUsed')
+      .attr('id','searchUsed');
+      
+    let newSpan =  $('<span />').html(`Search: ${searchWords.join(', ')}`);
+    let newSpanX = $('<span />')
+      .html('X')
+      .attr('id', 'searchX')
+      .on('click', () => {
+        searchWords = [];
+        displayMapObjects();
+      });
+    newDiv.append(newSpan);
+    newDiv.append(newSpanX);
+    $("#searchResults").append(newDiv);
+  }
+
+  
   filteredMapObjects.forEach( mapObject => {
     let newSpan = $('<span />').html(mapObject.tooltipContent).on('click', () => map.flyTo(mapObject.getCenterPoint()))
     $("#searchResults").append(newSpan);
@@ -132,19 +160,14 @@ $(document).ready(function() {
   $('#searchText').on('keydown', (event) => {
     if (event.keyCode === 13) {
       let searchText = $('#searchText').val().toLowerCase();
-      searchWords = searchText.split(' ');
+      searchWords = searchText.split(' ').filter(word => word.length > 0);
       $('#searchText').val('');
       displayMapObjects();
     }
   })
 
   $('#map').focus();
-
-  //searching improvements
-    // show term searched for somewhere
-    //  \-> X for clearing search results?
-    //  list section allow scroll if too many items
-    
+   
   //todo:  some quality of life features
   //      1 - escape while drawing should cancel the draw
   //      2 - enter should end typing in box

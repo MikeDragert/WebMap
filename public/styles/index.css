@@ -14,8 +14,10 @@ section {
 }
 
 #searchText {
-  width: 200px
+  width: 200px;
+  border-radius: 6px;
 }
+
 
 #searchResults {
   width: 200px;
@@ -34,7 +36,33 @@ section {
   border-style: solid;
   border-color: bisque;
   width: 96%;
+  cursor:pointer;
 }
+
+#searchResults > #searchUsed {
+  border: 2px;
+  border-radius: 6px;
+  margin: 2px;
+  padding: 2px;
+  border-style: solid;
+  border-color: rgb(154, 193, 245);
+  color: rgb(154, 193, 245);
+  width: 96%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+  align-items:flex-start;
+  cursor:pointer;
+}
+
+#searchUsed > #searchX {
+  border-width: 2px;
+  border-radius: 1px;
+  border-style: solid;
+  border-color: rgb(154, 193, 245);
+  color: rgb(154, 193, 245);
+}
+
 
 .optionsBar {
   display:flex;

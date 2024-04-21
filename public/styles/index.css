@@ -43,4 +43,7 @@ section {
   justify-content:stretch;
 }
 
-#map { height: 1080px; width: 1920px}
+#map { 
+  height: 800px; 
+  width: 800px;
+}

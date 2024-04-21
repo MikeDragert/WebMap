@@ -64,13 +64,14 @@ const displayMapObjects = function() {
   let filteredMapObjects = mapObjects;
   if (searchWords.length > 0) {
     filteredMapObjects = mapObjects.filter( mapObject => {
-      return searchWords.reduce((found, searchWord) => found || mapObject.tooltipContent.includes(searchWord), false)  
+      return searchWords.reduce((found, searchWord) => found || mapObject.tooltipContent.toLowerCase().includes(searchWord), false)  
     })
   }
   
   $("#searchResults").empty();
   filteredMapObjects.forEach( mapObject => {
-    $("#searchResults").append(`<span>${mapObject.tooltipContent}</span>`)
+    let newSpan = $('<span />').html(mapObject.tooltipContent).on('click', () => map.flyTo(mapObject.getCenterPoint()))
+    $("#searchResults").append(newSpan);
   })
 }
 
@@ -130,7 +131,7 @@ $(document).ready(function() {
 
   $('#searchText').on('keydown', (event) => {
     if (event.keyCode === 13) {
-      let searchText = $('#searchText').val();
+      let searchText = $('#searchText').val().toLowerCase();
       searchWords = searchText.split(' ');
       $('#searchText').val('');
       displayMapObjects();
@@ -142,7 +143,6 @@ $(document).ready(function() {
   //searching improvements
     // show term searched for somewhere
     //  \-> X for clearing search results?
-    //  click on search item - pan map to point, or center of line/rectangle
     //  list section allow scroll if too many items
     
   //todo:  some quality of life features

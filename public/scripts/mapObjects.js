@@ -84,6 +84,23 @@ export class MapObject {
     this._displayCurrentTooltipText();
   }
 
+  getCenterPoint = function() {
+    if (this._points.length === 0) {
+      return undefined;
+    }
+    
+    if (this._points.length === 1) {
+      return this._points[0];
+    }
+
+    let centerPoint = new L.LatLng(
+      this._points[0].lat + (this._points[1].lat-this._points[0].lat)/2, 
+      this._points[0].lng + (this._points[1].lng-this._points[0].lng)/2
+    );
+    
+    return centerPoint;
+  }
+
   _displayCurrentTooltipText = function() {
     if (this._editingTooltip) {
       this._mapElement.getTooltip().setContent(`<strong>${this._tooltipContent }</strong>`);

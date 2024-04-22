@@ -1,6 +1,5 @@
 import {modeType, Marker, Line, Rectangle } from './mapObjects.js';
 
-
 let map = undefined;
 let mapObjects = [];
 let searchWords = "";
@@ -41,14 +40,11 @@ let setMode = function(newMode) {
       $("#rectangleButton").addClass("buttonSelected");
       break;
   }
-
-
 }
 
 const getCurrentEditingObject = function() {
   return mapObjects.find((mapObject) => mapObject.editing)
 }
-
 
 const clearAllEditingObjects = function(exception = undefined) {
   mapObjects.forEach( mapObject => {
@@ -131,8 +127,9 @@ $(document).ready(function() {
   $("#lineButton").on('click', () => setMode(modeType.LINE));
   $("#rectangleButton").on('click', () => setMode(modeType.RECTANGLE));
   setMode(mode);
-  //todo:  what is the default location - can we get the location of the user?
+
   map = L.map('map').setView([51.505, -0.09], 13);
+  map.locate({setView: true, maxZoom: 14});
   
   L.tileLayer('https://tile.openstreetmap.org/{z}/{x}/{y}.png', {
       maxZoom: 19,
@@ -197,9 +194,4 @@ $(document).ready(function() {
   })
 
   $('#map').focus();
-   
-
-  // todo:  we really want it to load to the persons actual location if we can
-
-  //refactor??
 })

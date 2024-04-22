@@ -1,32 +1,65 @@
-body{
-  background-color: black;
-  color:antiquewhite
-}
-
-article {
-  display: flex;
-  flex-direction: row;
-}
-
-section {
+body {
+  background-color: rgb(4, 10, 19);
+  color:rgb(247, 249, 255);
+  margin: 0;
+  padding: 0;
+  height: 100vh;
+  width: 100vw;
+  max-height: 100vh;
+  max-width: 100vw;
   display: flex;
   flex-direction: column;
+  align-content: stretch;
+  justify-content: flex-start;
+  
 }
+
+body > header {
+  background-image: linear-gradient(to right, rgb(10, 15, 26), rgb(26, 38, 56), rgb(42, 61, 90) );
+  height: 80px;
+  margin: 0;
+  padding-left: 40px;
+  flex: 0 1 auto;
+}
+
+body > article {
+  display: flex;
+  flex-direction: row;
+  justify-content: stretch;
+  flex: 1 1 auto;
+}
+
+article > section {
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-content: flex-start;
+}
+
+.optionsBar {
+  display:flex;
+  flex-direction: row;
+  align-content: center;
+  justify-content:stretch;
+}
+
 
 #searchText {
   width: 200px;
   border-radius: 6px;
 }
 
-
 #searchResults {
-  width: 200px;
-  height: 100%;
+  width: 204px;
   display: flex;
   flex-direction: column;
   justify-content: flex-start;
   align-items: flex-start;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
+
+
 
 #searchResults > span {
   border: 2px;
@@ -34,8 +67,8 @@ section {
   margin: 2px;
   padding: 2px;
   border-style: solid;
-  border-color: bisque;
-  width: 96%;
+  border-color: rgb(247, 249, 255);
+  width:  194px;
   cursor:pointer;
 }
 
@@ -45,35 +78,29 @@ section {
   margin: 2px;
   padding: 2px;
   border-style: solid;
-  border-color: rgb(154, 193, 245);
-  color: rgb(154, 193, 245);
+  border-color: rgb(7, 19, 39);
+  color: rgb(7, 19, 39);
   width: 96%;
   display: flex;
   flex-direction: row;
   justify-content: space-between;
   align-items:flex-start;
   cursor:pointer;
+  background-color: rgb(247, 249, 255);
+  font-weight: bold;
 }
 
 #searchUsed > #searchX {
   border-width: 2px;
   border-radius: 1px;
   border-style: solid;
-  border-color: rgb(154, 193, 245);
-  color: rgb(154, 193, 245);
-}
+  border-color: rgb(7, 19, 39);
+  color: rgb(7, 19, 39);
 
-
-.optionsBar {
-  display:flex;
-  flex-direction: row;
-  align-content: center;
-  justify-content:stretch;
 }
 
 #map { 
-  height: 800px; 
-  width: 800px;
+  flex: 1 1 auto;
 }
 
 .editingTooltipText {
@@ -95,9 +122,11 @@ section {
   border-style: solid;
   padding: 4px;
   width: 56px;
+  color: rgb(247, 249, 255);
+  background-color:rgb(4, 10, 19)
 }
 
 .buttonSelected {
-  color: black;
-  background-color:antiquewhite
+  color: rgb(4, 10, 19);
+  background-color:rgb(247, 249, 255);
 }

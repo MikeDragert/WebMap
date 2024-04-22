@@ -202,11 +202,4 @@ $(document).ready(function() {
   // todo:  we really want it to load to the persons actual location if we can
 
   //refactor??
-
-  //styling
-  //  1 - colour scheme
-  //     \-> Title colour, background colour, text color, border colors
-  //  3 - clear title bar?
-
-
 })

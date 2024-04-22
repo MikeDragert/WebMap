@@ -96,3 +96,8 @@ section {
   padding: 4px;
   width: 56px;
 }
+
+.buttonSelected {
+  color: black;
+  background-color:antiquewhite
+}

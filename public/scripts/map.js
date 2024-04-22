@@ -14,9 +14,35 @@ let setIgnoreNextClick = function() {
 }
 
 let setMode = function(newMode) {
+  switch (mode) {
+    case modeType.POINT:
+      $("#pointButton").removeClass("buttonSelected");
+      break;
+    case modeType.LINE:
+      $("#lineButton").removeClass("buttonSelected");
+      break;
+    case modeType.RECTANGLE:
+      $("#rectangleButton").removeClass("buttonSelected");
+      break;
+  }
+
   if (Object.values(modeType).includes(newMode)) {
     mode = newMode;
   }
+
+  switch (mode) {
+    case modeType.POINT:
+      $("#pointButton").addClass("buttonSelected");
+      break;
+    case modeType.LINE:
+      $("#lineButton").addClass("buttonSelected");
+      break;
+    case modeType.RECTANGLE:
+      $("#rectangleButton").addClass("buttonSelected");
+      break;
+  }
+
+
 }
 
 const getCurrentEditingObject = function() {
@@ -104,7 +130,7 @@ $(document).ready(function() {
   $("#pointButton").on('click', () => setMode(modeType.POINT));
   $("#lineButton").on('click', () => setMode(modeType.LINE));
   $("#rectangleButton").on('click', () => setMode(modeType.RECTANGLE));
-
+  setMode(mode);
   //todo:  what is the default location - can we get the location of the user?
   map = L.map('map').setView([51.505, -0.09], 13);
   

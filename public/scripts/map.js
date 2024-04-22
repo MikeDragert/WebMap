@@ -12,8 +12,9 @@ let setIgnoreNextClick = function() {
   ignoreNextClick = true;
 }
 
-let setMode = function(newMode) {
-  switch (mode) {
+//update the options bar to show the new mode chosen
+let displayMode = function(oldMode, newMode) {
+  switch (oldMode) {
     case modeType.POINT:
       $("#pointButton").removeClass("buttonSelected");
       break;
@@ -24,12 +25,7 @@ let setMode = function(newMode) {
       $("#rectangleButton").removeClass("buttonSelected");
       break;
   }
-
-  if (Object.values(modeType).includes(newMode)) {
-    mode = newMode;
-  }
-
-  switch (mode) {
+  switch (newMode) {
     case modeType.POINT:
       $("#pointButton").addClass("buttonSelected");
       break;
@@ -42,10 +38,21 @@ let setMode = function(newMode) {
   }
 }
 
+// set the drawing mode
+let setMode = function(newMode) {
+  let oldMode = mode;
+  if (Object.values(modeType).includes(newMode)) {
+    mode = newMode;
+  }
+  displayMode(oldMode, mode);
+}
+
+// retrieve the current map object we are editing
 const getCurrentEditingObject = function() {
   return mapObjects.find((mapObject) => mapObject.editing)
 }
 
+// clear all mapObjects from editing, EXCEPT the exception if given
 const clearAllEditingObjects = function(exception = undefined) {
   mapObjects.forEach( mapObject => {
     if ((mapObject !== exception) && (mapObject.editing)) {
@@ -54,11 +61,13 @@ const clearAllEditingObjects = function(exception = undefined) {
   })
 }
 
+// remove a given mapObject from the list
 const removeMapObject = function(removeObject) {
   mapObjects = mapObjects.filter(mapObject => mapObject !== removeObject);
   displayMapObjects();
 }
 
+// key handler
 const handleKey = function(keyEvent) {
   let currentObjectEditing = getCurrentEditingObject();
   if (currentObjectEditing) {
@@ -86,7 +95,7 @@ const handleKey = function(keyEvent) {
   }
 }
 
-//todo: we may want the option to just update one from the list, instead of removing all and recreating on typing text
+// show the map options on the sidebar
 const displayMapObjects = function() {
   let filteredMapObjects = mapObjects;
   if (searchWords.length > 0) {
@@ -94,6 +103,7 @@ const displayMapObjects = function() {
       return searchWords.reduce((found, searchWord) => found || mapObject.tooltipContent.toLowerCase().includes(searchWord), false)  
     })
   }
+
   $("#searchResults").empty();
 
   if (searchWords.length > 0) {
@@ -120,6 +130,7 @@ const displayMapObjects = function() {
   })
 }
 
+// initialization on document ready
 $(document).ready(function() {
   
   $(document).on('keydown', handleKey);
@@ -136,7 +147,6 @@ $(document).ready(function() {
       attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
   }).addTo(map);
 
-  //handle on click event for map
   map.on('click', (e) => {
     if (ignoreNextClick) {
       ignoreNextClick = false;

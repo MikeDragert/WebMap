@@ -4,6 +4,7 @@ export const modeType = {
   RECTANGLE: 3
 }
 
+// constants that can be used to modify behaviour
 const LINEWEIGHT = 4;
 const LINEOPACITY = 0.75;
 const POINTCLICKBOUNDS = 0.005;  //this maybe should scale with the zoom
@@ -11,6 +12,7 @@ const TOOLTIPTEXTDEFAULT = "Type here";
 const EDITINGCOLOR = "#2AAD27";
 const FINISHEDCOLOR = "#2A81CB";
 
+//MapObject class tracks needed information on a mapObject and manages displaying on the map
 export class MapObject {
   _type = undefined;
   _points = [];
@@ -92,15 +94,14 @@ export class MapObject {
     this._displayCurrentTooltipText();
   }
 
+  // get the centerpoint of the mapObject
   getCenterPoint = function() {
     if (this._points.length === 0) {
       return undefined;
     }
-    
     if (this._points.length === 1) {
       return this._points[0];
     }
-
     let centerPoint = new L.LatLng(
       this._points[0].lat + (this._points[1].lat-this._points[0].lat)/2, 
       this._points[0].lng + (this._points[1].lng-this._points[0].lng)/2
@@ -109,6 +110,7 @@ export class MapObject {
     return centerPoint;
   }
 
+  // move the mapObject by the delta supplied
   move = function(L, map, delta) {
     this._points = this._points.map(point => {
       point.lat += delta.lat;
@@ -118,15 +120,13 @@ export class MapObject {
     this.createOnMap(L, map);
   }
 
+  // display the tooltip text
   _displayCurrentTooltipText = function() {
-    // if (this._editing) {
-    //   this._mapElement.getTooltip().setContent(`<strong>${this._tooltipContent }</strong>`);
-    // } else {
-      this._mapElement.getTooltip().setContent(this._tooltipContent );
-    // }
+    this._mapElement.getTooltip().setContent(this._tooltipContent );
     this._callbacks.displayMapObjects();
   }
   
+  //this displays the tooltip by binding it to the map
   _createTooltip = function (L, map) {
     if (!this._mapElement) {
       return;
@@ -145,12 +145,9 @@ export class MapObject {
           this.toggleEdit(L, map);   
         }
       });
-  
-    // if ((this._tooltipContent.length === 0) || (this._tooltipContent === TOOLTIPTEXTDEFAULT)) {
-    //   this.toggleEdit(L, map);
-    // }
   }
   
+  // does this tooltip match the event source target
   _tooltipMatch = function(event) {
     if (!this._mapElement) {
       return false;
@@ -158,6 +155,7 @@ export class MapObject {
     return this._mapElement.getTooltip() === event.sourceTarget;
   }
   
+  // toggle this mapObject between editing or not editing
   toggleEdit = function(L, map) {
     if (!this._mapElement) {
       return;
@@ -173,9 +171,7 @@ export class MapObject {
       return;
     }
 
-     this.createOnMap(L, map);
-     //this._displayCurrentTooltipText();
-    //$('#map').focus();
+    this.createOnMap(L, map);
   
     if (this._editing) {
       this._callbacks.clearAllEditingObjects(this);
@@ -185,6 +181,8 @@ export class MapObject {
     map.keyboard.enable(); 
   }
  
+  // are the two given points sufficiently close
+  // note this may need adjusting depending on the zoom level (future)
   _pointsClose = function(point1, point2) {
     return (point1.lat - POINTCLICKBOUNDS) <= point2.lat && 
             point2.lat <= (point1.lat + POINTCLICKBOUNDS) &&
@@ -192,6 +190,7 @@ export class MapObject {
             point2.lng <= (point1.lng + POINTCLICKBOUNDS); 
   }
 
+  // remove this drawn element from the map
   removeFromMap = function(map) {
     if (this._mapElement) {
       map.removeLayer(this._mapElement);
@@ -199,6 +198,7 @@ export class MapObject {
     }
   }
 
+  // create a marker mapObject on the map
   _createMarker = function(L, map) {
     if (this._points.length < 1) {
       return;
@@ -236,6 +236,7 @@ export class MapObject {
     }
   }
 
+  // create a line or rectangle mapObject on the map
   _drawMapObject = function(L, map, targetPoint = undefined) {
     let targetPoints = [...this._points];
     if ((targetPoints.length === 1) && (targetPoint instanceof L.LatLng)) {
@@ -334,6 +335,7 @@ export class MapObject {
     this._createTooltip(L, map);
   }
 
+  // create this mapObject on the map by checking type and calling appropriate method
   createOnMap = function(L, map, targetPoint = undefined) {
     switch(this._type) {
       case modeType.POINT:
@@ -347,6 +349,7 @@ export class MapObject {
   }
 }
 
+// Marker mapObject
 export class Marker extends MapObject {
   constructor (points, callbacks, tooltipContent = TOOLTIPTEXTDEFAULT) {
     super();
@@ -358,6 +361,7 @@ export class Marker extends MapObject {
   }
 }
 
+// Line mapObject
 export class Line extends MapObject {
   constructor (points, callbacks, tooltipContent = TOOLTIPTEXTDEFAULT) {
     super();
@@ -369,6 +373,7 @@ export class Line extends MapObject {
   }
 }
 
+// Rectangle mapObject
 export class Rectangle extends MapObject {
   constructor (points, callbacks, tooltipContent = TOOLTIPTEXTDEFAULT) {
     super();

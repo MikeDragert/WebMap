@@ -15,6 +15,7 @@
 
     <!-- External JS -->
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://kit.fontawesome.com/b9be163a92.js" crossorigin="anonymous"></script>
 
      <!-- Make sure you put this AFTER Leaflet's CSS -->
     <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"
@@ -30,9 +31,9 @@
     <article>
       <section id="sideBar">
         <article class="optionsBar">
-          <button id="pointButton">Point</button>
-          <button id="lineButton">Line</button>
-          <button id="rectangleButton">Rectangle</button>
+          <div class="button"  id="pointButton"><i class="fa-solid fa-location-pin"></i></div>
+          <div class="button"  id="lineButton"><i class="fa-solid fa-slash"></i></div>
+          <div class="button"  id="rectangleButton"><i class="fa-regular fa-square"></i></div>
         </article>
         <input type="text" id="searchText" placeholder="Enter search...">
         <article id="searchResults">

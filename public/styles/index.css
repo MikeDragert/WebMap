@@ -84,3 +84,15 @@ section {
 .tooltipText {
   font-size: medium;
 }
+
+.button {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  align-content: center;
+  border: 2px;
+  border-radius: 2px;
+  border-style: solid;
+  padding: 4px;
+  width: 56px;
+}

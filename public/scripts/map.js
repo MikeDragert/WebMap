@@ -180,10 +180,7 @@ $(document).ready(function() {
   //styling
   //  1 - colour scheme
   //     \-> Title colour, background colour, text color, border colors
-  //  2 - Buttons styling - font-awesome?
-  //  3 - map items styling
-  //    \-> drawing/selected colour, finished colour, tooltip styling
-  //  4 - clear title bar?
+  //  3 - clear title bar?
 
 
 })

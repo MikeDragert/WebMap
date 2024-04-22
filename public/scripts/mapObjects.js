@@ -18,7 +18,7 @@ export class MapObject {
   _editingTooltip = false;
   _mapElement = undefined;
   _callbacks = undefined;
-  _editingSize = false;
+  _editingObject = false;
 
   constructor () {
     this._editingTooltip = false;
@@ -40,8 +40,8 @@ export class MapObject {
     return this._points.length
   }
   
-  get editingSize() {
-    return this._editingSize;
+  get editingObject() {
+    return this._editingObject;
   }
 
   setPoints = function(points) {
@@ -180,12 +180,12 @@ export class MapObject {
     }
 
     let iconUrl = "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png"
-    if (this._type.editingSize) {
+    if (this._type.editingObject) {
       iconUrl = "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png"
     }
     if (this._type = modeType.POINT) {
       if (this._mapElement === undefined) {
-        this._mapElement = L.marker(this._points[0], { icon: new L.Icon({iconUrl: iconUrl})});
+        this._mapElement = L.marker(this._points[0], { icon: new L.Icon({iconUrl: iconUrl, iconSize: [25, 41], iconAnchor: [12, 41],})});
         this._mapElement.on('click', (e) => {
           if (this._mapElement === e.sourceTarget) {
             map.removeLayer(this._mapElement);
@@ -242,7 +242,7 @@ export class MapObject {
 
         if (stillDrawing) {
           this._points.push(event.latlng);
-          this._editingSize = false;
+          this._editingObject = false;
           map.removeLayer(this._mapElement);          
           this._drawMapObject(L, map);
         } else {
@@ -272,7 +272,7 @@ export class MapObject {
           map.removeLayer(this._mapElement);  
           if (foundPoint) {
             this._drawMapObject(L, map, event.latlng);
-            this._editingSize = true;
+            this._editingObject = true;
           } else {
             this._callbacks.removeMapObject(this);
           }
@@ -308,7 +308,7 @@ export class Marker extends MapObject {
     this._type = modeType.POINT;
     this._points = points;
     this._tooltipContent = tooltipContent;
-    this._editingSize - false;
+    this._editingObject - false;
     this._callbacks = callbacks;
   }
 }
@@ -319,10 +319,10 @@ export class Line extends MapObject {
     this._type = modeType.LINE;
     this._points = points;
     this._tooltipContent = tooltipContent;
-    this._editingSize = this._points.length < 2;
+    this._editingObject = this._points.length < 2;
     this._callbacks = callbacks;
     if (this._points.length < 2) {
-      this._editingSize = true;
+      this._editingObject = true;
     }
   }
 }
@@ -333,10 +333,10 @@ export class Rectangle extends MapObject {
     this._type = modeType.RECTANGLE;
     this._points = points;
     this._tooltipContent = tooltipContent;
-    this._editingSize = this._points.length < 2;
+    this._editingObject = this._points.length < 2;
     this._callbacks = callbacks;
     if (this._points.length < 2) {
-      this._editingSize = true;
+      this._editingObject = true;
     }
   }
 }

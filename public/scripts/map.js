@@ -22,8 +22,8 @@ const getCurrentEditingTooltipObject = function() {
   return mapObjects.find((mapObject) => mapObject.editingTooltip)
 }
 
-const getCurrentEditingSizeObject = function() {
-  return mapObjects.find((mapObject) => mapObject.editingSize)
+const getCurrentEditingObject = function() {
+  return mapObjects.find((mapObject) => mapObject.editingObject)
 }
 
 
@@ -152,7 +152,7 @@ $(document).ready(function() {
   })
   
   map.on('mousemove', (e) => {
-    let editObject = getCurrentEditingSizeObject()    
+    let editObject = getCurrentEditingObject()    
     if (editObject) {
       switch(mode) {
         case modeType.LINE:

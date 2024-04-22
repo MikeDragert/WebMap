@@ -75,3 +75,12 @@ section {
   height: 800px; 
   width: 800px;
 }
+
+.editingTooltipText {
+  font-size:large;
+  font-weight: bold;
+}
+
+.tooltipText {
+  font-size: medium;
+}

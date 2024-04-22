@@ -15,17 +15,16 @@ export class MapObject {
   _type = undefined;
   _points = [];
   _tooltipContent = TOOLTIPTEXTDEFAULT;
-  _editingTooltip = false;
+  _editing = false;
   _mapElement = undefined;
   _callbacks = undefined;
-  _editingObject = false;
 
   constructor () {
-    this._editingTooltip = false;
+    this._editing = false;
   }
 
   get editingTooltip() {
-    return this._editingTooltip;
+    return this._editing;
   }
 
   get tooltipContent() {
@@ -40,8 +39,8 @@ export class MapObject {
     return this._points.length
   }
   
-  get editingObject() {
-    return this._editingObject;
+  get editing() {
+    return this._editing;
   }
 
   setPoints = function(points) {
@@ -104,30 +103,36 @@ export class MapObject {
   }
 
   _displayCurrentTooltipText = function() {
-    if (this._editingTooltip) {
-      this._mapElement.getTooltip().setContent(`<strong>${this._tooltipContent }</strong>`);
-    } else {
+    // if (this._editing) {
+    //   this._mapElement.getTooltip().setContent(`<strong>${this._tooltipContent }</strong>`);
+    // } else {
       this._mapElement.getTooltip().setContent(this._tooltipContent );
-    }
+    // }
     this._callbacks.displayMapObjects();
   }
   
-  _createTooltip = function (map) {
+  _createTooltip = function (L, map) {
     if (!this._mapElement) {
       return;
     }
 
-    this._mapElement.bindTooltip(this._tooltipContent, {permanent: true, direction: "auto", interactive: true, bubblingMouseEvents: false})
+    this._mapElement.bindTooltip(this._tooltipContent, {
+      permanent: true, 
+      direction: "auto", 
+      interactive: true, 
+      bubblingMouseEvents: false, 
+      className: this._editing? 'editingTooltipText' : 'tooltipText' 
+    })
       .openTooltip()
       .on('click', (event) => {
         if (this._tooltipMatch(event)) {
-          this.toggleTooltipEdit(map);   
+          this.toggleEdit(L, map);   
         }
       });
   
-    if ((this._tooltipContent.length === 0) || (this._tooltipContent === TOOLTIPTEXTDEFAULT)) {
-      this.toggleTooltipEdit(map);
-    }
+    // if ((this._tooltipContent.length === 0) || (this._tooltipContent === TOOLTIPTEXTDEFAULT)) {
+    //   this.toggleEdit(L, map);
+    // }
   }
   
   _tooltipMatch = function(event) {
@@ -137,11 +142,11 @@ export class MapObject {
     return this._mapElement.getTooltip() === event.sourceTarget;
   }
   
-  toggleTooltipEdit = function(map) {
+  toggleEdit = function(L, map) {
     if (!this._mapElement) {
       return;
     }
-    this._editingTooltip = !this._editingTooltip;
+    this._editing = !this._editing;
     
     if (!this._mapElement.getTooltip()) {
       $('#map').focus();
@@ -149,17 +154,18 @@ export class MapObject {
       return;
     }
 
-    this._displayCurrentTooltipText();
-    $('#map').focus();
+     this.createOnMap(L, map);
+     //this._displayCurrentTooltipText();
+    //$('#map').focus();
   
-    if (this._editingTooltip) {
+    if (this._editing) {
       this._callbacks.clearAllEditingObjects(this);
       map.keyboard.disable(); //todo: something weird happens here.  enabling keyboard later doesn't work until we click outside the map and then back in
       return;
     } 
     map.keyboard.enable(); 
   }
-  
+ 
   _pointsClose = function(point1, point2) {
     return (point1.lat - POINTCLICKBOUNDS) <= point2.lat && 
             point2.lat <= (point1.lat + POINTCLICKBOUNDS) &&
@@ -178,26 +184,33 @@ export class MapObject {
     if (this._points.length < 1) {
       return;
     }
+    let lastMapElement = this._mapElement;
 
     let iconUrl = "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png"
-    if (this._type.editingObject) {
+    if (this._editing) {
       iconUrl = "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png"
     }
     if (this._type = modeType.POINT) {
-      if (this._mapElement === undefined) {
-        this._mapElement = L.marker(this._points[0], { icon: new L.Icon({iconUrl: iconUrl, iconSize: [25, 41], iconAnchor: [12, 41],})});
-        this._mapElement.on('click', (e) => {
-          if (this._mapElement === e.sourceTarget) {
-            map.removeLayer(this._mapElement);
-            this._mapElement = undefined;
-            $('#map').focus();
-            this._callbacks.removeMapObject(this);
-          }
-        });
 
-        this._mapElement.addTo(map);
-        this._createTooltip(map);
+      this._mapElement = L.marker(this._points[0], { icon: new L.Icon({iconUrl: iconUrl, iconSize: [25, 41], iconAnchor: [12, 41]})});
+      this._mapElement.on('click', (e) => {
+        if (this._mapElement === e.sourceTarget) {
+
+          this.toggleEdit(L, map);
+          
+          // map.removeLayer(this._mapElement);
+          // this._mapElement = undefined;
+          // $('#map').focus();
+          // this._callbacks.removeMapObject(this);
+        }
+      });
+
+      this._mapElement.addTo(map);
+
+      if (lastMapElement) {
+        map.removeLayer(lastMapElement);
       }
+      this._createTooltip(L, map);
     }
   }
 
@@ -210,8 +223,7 @@ export class MapObject {
     if (targetPoints.length < 2) {
       return;
     }
-    let drawing = this._points.length < 2;
-    let color = drawing ? EDITINGCOLOR : FINISHEDCOLOR;
+    let color = this._editing ? EDITINGCOLOR : FINISHEDCOLOR;
     let lastMapElement = this._mapElement;    
     if (this._type === modeType.LINE) {
       this._mapElement = new L.Polyline(targetPoints, {
@@ -242,40 +254,41 @@ export class MapObject {
 
         if (stillDrawing) {
           this._points.push(event.latlng);
-          this._editingObject = false;
+
           map.removeLayer(this._mapElement);          
           this._drawMapObject(L, map);
         } else {
-          //did we click near a corner?
-          let objectLatLngs = [];
-          let totalPoints = 0;
-          if (this._type === modeType.LINE) {
-            objectLatLngs = this._mapElement.getLatLngs();
-            totalPoints = 2;
-          }
-          if (this._type === modeType.RECTANGLE) {
-            objectLatLngs = this._mapElement.getLatLngs()[0];
-            totalPoints = 4;
-          }
+          this.toggleEdit(L, map);
+          // //did we click near a corner?
+          // let objectLatLngs = [];
+          // let totalPoints = 0;
+          // if (this._type === modeType.LINE) {
+          //   objectLatLngs = this._mapElement.getLatLngs();
+          //   totalPoints = 2;
+          // }
+          // if (this._type === modeType.RECTANGLE) {
+          //   objectLatLngs = this._mapElement.getLatLngs()[0];
+          //   totalPoints = 4;
+          // }
           
-          let foundPoint = false;
-          if (objectLatLngs.length > 1) {
-            for(let index = 0; index < objectLatLngs.length; index++) {
-              if (this._pointsClose(event.latlng, objectLatLngs[index])) {
-                let keepPoint = totalPoints === 4? (index + 2) % totalPoints : (index + 1) % totalPoints;
-                this._points = [objectLatLngs[keepPoint]];
-                foundPoint = true;
-                break;
-              }
-            }
-          }
-          map.removeLayer(this._mapElement);  
-          if (foundPoint) {
-            this._drawMapObject(L, map, event.latlng);
-            this._editingObject = true;
-          } else {
-            this._callbacks.removeMapObject(this);
-          }
+          // let foundPoint = false;
+          // if (objectLatLngs.length > 1) {
+          //   for(let index = 0; index < objectLatLngs.length; index++) {
+          //     if (this._pointsClose(event.latlng, objectLatLngs[index])) {
+          //       let keepPoint = totalPoints === 4? (index + 2) % totalPoints : (index + 1) % totalPoints;
+          //       this._points = [objectLatLngs[keepPoint]];
+          //       foundPoint = true;
+          //       break;
+          //     }
+          //   }
+          // }
+          // map.removeLayer(this._mapElement);  
+          // if (foundPoint) {
+          //   this._drawMapObject(L, map, event.latlng);
+          //   this._editing = true;
+          // } else {
+          //   this._callbacks.removeMapObject(this);
+          // }
         }
       }
       this._callbacks.setIgnoreNextClick();
@@ -286,7 +299,7 @@ export class MapObject {
     }
     
     this._mapElement.addTo(map);
-    this._createTooltip(map);
+    this._createTooltip(L, map);
   }
 
   createOnMap = function(L, map, targetPoint = undefined) {
@@ -308,7 +321,7 @@ export class Marker extends MapObject {
     this._type = modeType.POINT;
     this._points = points;
     this._tooltipContent = tooltipContent;
-    this._editingObject - false;
+    this._editing = true;
     this._callbacks = callbacks;
   }
 }
@@ -319,11 +332,8 @@ export class Line extends MapObject {
     this._type = modeType.LINE;
     this._points = points;
     this._tooltipContent = tooltipContent;
-    this._editingObject = this._points.length < 2;
     this._callbacks = callbacks;
-    if (this._points.length < 2) {
-      this._editingObject = true;
-    }
+    this._editing = true;
   }
 }
 
@@ -333,10 +343,7 @@ export class Rectangle extends MapObject {
     this._type = modeType.RECTANGLE;
     this._points = points;
     this._tooltipContent = tooltipContent;
-    this._editingObject = this._points.length < 2;
     this._callbacks = callbacks;
-    if (this._points.length < 2) {
-      this._editingObject = true;
-    }
+    this._editing = true;
   }
 }

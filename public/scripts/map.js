@@ -18,19 +18,15 @@ let setMode = function(newMode) {
   }
 }
 
-const getCurrentEditingTooltipObject = function() {
-  return mapObjects.find((mapObject) => mapObject.editingTooltip)
-}
-
 const getCurrentEditingObject = function() {
-  return mapObjects.find((mapObject) => mapObject.editingObject)
+  return mapObjects.find((mapObject) => mapObject.editing)
 }
 
 
-const clearAllEditingObjects = function(exception) {
+const clearAllEditingObjects = function(exception = undefined) {
   mapObjects.forEach( mapObject => {
-    if ((mapObject !== exception) && (mapObject.editingTooltip)) {
-      mapObject.toggleTooltipEdit(map);
+    if ((mapObject !== exception) && (mapObject.editing)) {
+      mapObject.toggleEdit(L, map);
     }
   })
 }
@@ -39,20 +35,22 @@ const removeMapObject = function(removeObject) {
   mapObjects = mapObjects.filter(mapObject => mapObject !== removeObject);
   displayMapObjects();
 }
-
+//46 is delete, 8 is backspace
 const handleKey = function(keyEvent) {
-  let currentObjectEditing = getCurrentEditingTooltipObject();
+  let currentObjectEditing = getCurrentEditingObject();
   if (currentObjectEditing) {
     if ((keyEvent.keyCode === 8) || (keyEvent.keyCode === 127)) {
       currentObjectEditing.removeLastCharFromTooltipContent();       
+    } else if (keyEvent.keyCode === 46) {
+      removeMapObject(currentObjectEditing);     
+      currentObjectEditing.removeFromMap(map);
     } else if (keyEvent.keyCode === 27) {
-      console.log('escape');
       currentObjectEditing.removeFromMap(map);
       removeMapObject(currentObjectEditing);
     } else if ((keyEvent.keyCode === 13) && (keyEvent.shiftKey)) {
       currentObjectEditing.addCharToTooltipContent("<br>"); 
     } else if (keyEvent.keyCode === 13) {
-      currentObjectEditing.toggleTooltipEdit(map);   
+      currentObjectEditing.toggleEdit(L, map);   
     } else if (keyEvent.keyCode === 32) {
       keyEvent.stopPropagation();
       keyEvent.preventDefault();
@@ -134,16 +132,19 @@ $(document).ready(function() {
     }
     switch(mode) {
       case modeType.POINT:
+        clearAllEditingObjects();
         mapObjects.push(new Marker([e.latlng], { clearAllEditingObjects , removeMapObject, setIgnoreNextClick, displayMapObjects} ));
         mapObjects[mapObjects.length-1].createOnMap(L, map);
         displayMapObjects();
         break;
       case modeType.LINE:
+        clearAllEditingObjects();
         mapObjects.push(new Line([e.latlng], { clearAllEditingObjects , removeMapObject, setIgnoreNextClick, displayMapObjects} ));
         mapObjects[mapObjects.length-1].createOnMap(L, map, e.latlng);
         displayMapObjects();
         break;
       case modeType.RECTANGLE:
+        clearAllEditingObjects();
         mapObjects.push(new Rectangle([e.latlng], { clearAllEditingObjects , removeMapObject, setIgnoreNextClick, displayMapObjects} ));
         mapObjects[mapObjects.length-1].createOnMap(L, map, e.latlng);
         displayMapObjects();
@@ -152,7 +153,7 @@ $(document).ready(function() {
   })
   
   map.on('mousemove', (e) => {
-    let editObject = getCurrentEditingObject()    
+    let editObject = getCurrentEditingObject();
     if (editObject) {
       switch(mode) {
         case modeType.LINE:

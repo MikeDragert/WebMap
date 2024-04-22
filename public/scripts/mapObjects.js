@@ -8,6 +8,8 @@ const LINEWEIGHT = 4;
 const LINEOPACITY = 0.75;
 const POINTCLICKBOUNDS = 0.005;  //this maybe should scale with the zoom
 const TOOLTIPTEXTDEFAULT = "Type here";
+const EDITINGCOLOR = "CornflowerBlue";
+const FINISHEDCOLOR = "MediumSlateBlue";
 
 export class MapObject {
   _type = undefined;
@@ -205,7 +207,7 @@ export class MapObject {
       return;
     }
     let drawing = this._points.length < 2;
-    let color = drawing ? "CornflowerBlue" : "MediumSlateBlue"
+    let color = drawing ? EDITINGCOLOR : FINISHEDCOLOR;
     let lastMapElement = this._mapElement;    
     if (this._type === modeType.LINE) {
       this._mapElement = new L.Polyline(targetPoints, {

@@ -35,7 +35,7 @@ const removeMapObject = function(removeObject) {
   mapObjects = mapObjects.filter(mapObject => mapObject !== removeObject);
   displayMapObjects();
 }
-//46 is delete, 8 is backspace
+
 const handleKey = function(keyEvent) {
   let currentObjectEditing = getCurrentEditingObject();
   if (currentObjectEditing) {
@@ -176,13 +176,10 @@ $(document).ready(function() {
   $('#map').focus();
    
   //todo:  some quality of life features
-  //      3 - allow moving the items with long click, or click drag
-  //          \-> needs to work with deleting too
-  //      4 - need select area on points scale with zoom - or based on pixels and not long/lat
-  // OR 1 - click once to edit, click again (or escape) to stop editing
+  // OR 1 - on editing...
   //      - while selected - clicking a point can resize
-  //      - long click to drage
-  //      - delete key to delete
+  //      - long click to drag item around
+  
 
   // todo:  we really want it to load to the persons actual location if we can
 

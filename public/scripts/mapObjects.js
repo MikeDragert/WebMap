@@ -258,37 +258,41 @@ export class MapObject {
           map.removeLayer(this._mapElement);          
           this._drawMapObject(L, map);
         } else {
-          this.toggleEdit(L, map);
-          // //did we click near a corner?
-          // let objectLatLngs = [];
-          // let totalPoints = 0;
-          // if (this._type === modeType.LINE) {
-          //   objectLatLngs = this._mapElement.getLatLngs();
-          //   totalPoints = 2;
-          // }
-          // if (this._type === modeType.RECTANGLE) {
-          //   objectLatLngs = this._mapElement.getLatLngs()[0];
-          //   totalPoints = 4;
-          // }
-          
-          // let foundPoint = false;
-          // if (objectLatLngs.length > 1) {
-          //   for(let index = 0; index < objectLatLngs.length; index++) {
-          //     if (this._pointsClose(event.latlng, objectLatLngs[index])) {
-          //       let keepPoint = totalPoints === 4? (index + 2) % totalPoints : (index + 1) % totalPoints;
-          //       this._points = [objectLatLngs[keepPoint]];
-          //       foundPoint = true;
-          //       break;
-          //     }
-          //   }
-          // }
-          // map.removeLayer(this._mapElement);  
-          // if (foundPoint) {
-          //   this._drawMapObject(L, map, event.latlng);
-          //   this._editing = true;
-          // } else {
-          //   this._callbacks.removeMapObject(this);
-          // }
+          if (this._editing) {
+            //did we click near a corner?
+            let objectLatLngs = [];
+            let totalPoints = 0;
+            if (this._type === modeType.LINE) {
+              objectLatLngs = this._mapElement.getLatLngs();
+              totalPoints = 2;
+            }
+            if (this._type === modeType.RECTANGLE) {
+              objectLatLngs = this._mapElement.getLatLngs()[0];
+              totalPoints = 4;
+            }
+            
+            let foundPoint = false;
+            if (objectLatLngs.length > 1) {
+              for(let index = 0; index < objectLatLngs.length; index++) {
+                if (this._pointsClose(event.latlng, objectLatLngs[index])) {
+                  let keepPoint = totalPoints === 4? (index + 2) % totalPoints : (index + 1) % totalPoints;
+                  this._points = [objectLatLngs[keepPoint]];
+                  foundPoint = true;
+                  break;
+                }
+              }
+            }
+
+            map.removeLayer(this._mapElement);  
+            if (foundPoint) {
+              this._drawMapObject(L, map, event.latlng);
+            } else {
+              this.toggleEdit(L, map);
+            }
+          }
+          else {
+            this.toggleEdit(L, map);
+          }
         }
       }
       this._callbacks.setIgnoreNextClick();

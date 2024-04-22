@@ -49,8 +49,10 @@ const handleKey = function(keyEvent) {
       console.log('escape');
       currentObjectEditing.removeFromMap(map);
       removeMapObject(currentObjectEditing);
-    } else if (keyEvent.keyCode === 13) {
+    } else if ((keyEvent.keyCode === 13) && (keyEvent.shiftKey)) {
       currentObjectEditing.addCharToTooltipContent("<br>"); 
+    } else if (keyEvent.keyCode === 13) {
+      currentObjectEditing.toggleTooltipEdit(map);   
     } else if (keyEvent.keyCode === 32) {
       keyEvent.stopPropagation();
       keyEvent.preventDefault();
@@ -173,9 +175,6 @@ $(document).ready(function() {
   $('#map').focus();
    
   //todo:  some quality of life features
-  //      1 - escape while drawing should cancel the draw
-  //      2 - enter should end typing in box
-  //        |-> shift enter should add new line
   //      3 - allow moving the items with long click, or click drag
   //          \-> needs to work with deleting too
   //      4 - need select area on points scale with zoom - or based on pixels and not long/lat

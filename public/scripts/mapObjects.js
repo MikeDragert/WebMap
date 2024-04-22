@@ -8,8 +8,8 @@ const LINEWEIGHT = 4;
 const LINEOPACITY = 0.75;
 const POINTCLICKBOUNDS = 0.005;  //this maybe should scale with the zoom
 const TOOLTIPTEXTDEFAULT = "Type here";
-const EDITINGCOLOR = "CornflowerBlue";
-const FINISHEDCOLOR = "MediumSlateBlue";
+const EDITINGCOLOR = "#2AAD27";
+const FINISHEDCOLOR = "#2A81CB";
 
 export class MapObject {
   _type = undefined;
@@ -179,9 +179,13 @@ export class MapObject {
       return;
     }
 
+    let iconUrl = "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png"
+    if (this._type.editingSize) {
+      iconUrl = "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png"
+    }
     if (this._type = modeType.POINT) {
       if (this._mapElement === undefined) {
-        this._mapElement = L.marker(this._points[0]);
+        this._mapElement = L.marker(this._points[0], { icon: new L.Icon({iconUrl: iconUrl})});
         this._mapElement.on('click', (e) => {
           if (this._mapElement === e.sourceTarget) {
             map.removeLayer(this._mapElement);

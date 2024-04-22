@@ -4,6 +4,7 @@ import {modeType, Marker, Line, Rectangle } from './mapObjects.js';
 let map = undefined;
 let mapObjects = [];
 let searchWords = "";
+let lastMouseLocation = undefined;
 
 let mode = modeType.POINT;
 let ignoreNextClick = false;
@@ -73,15 +74,6 @@ const displayMapObjects = function() {
   }
   $("#searchResults").empty();
 
-  // if (searchWords.length > 0) {
-  //   let newSpan = $('<span />')
-  //     .addClass('searchUsed')
-  //     .attr('id','searchUsed')
-  //     .html(`Search: ${searchWords.join(', ')}`)
-  //     .on('click', () => {
-  //       searchWords = [];
-  //       displayMapObjects();
-  //     })
   if (searchWords.length > 0) {
     let newDiv = $('<div />')
       .addClass('searchUsed')
@@ -100,7 +92,6 @@ const displayMapObjects = function() {
     $("#searchResults").append(newDiv);
   }
 
-  
   filteredMapObjects.forEach( mapObject => {
     let newSpan = $('<span />').html(mapObject.tooltipContent).on('click', () => map.flyTo(mapObject.getCenterPoint()))
     $("#searchResults").append(newSpan);
@@ -110,8 +101,6 @@ const displayMapObjects = function() {
 $(document).ready(function() {
   
   $(document).on('keydown', handleKey);
-
-
   $("#pointButton").on('click', () => setMode(modeType.POINT));
   $("#lineButton").on('click', () => setMode(modeType.LINE));
   $("#rectangleButton").on('click', () => setMode(modeType.RECTANGLE));
@@ -155,13 +144,21 @@ $(document).ready(function() {
   map.on('mousemove', (e) => {
     let editObject = getCurrentEditingObject();
     if (editObject) {
-      switch(mode) {
-        case modeType.LINE:
-        case modeType.RECTANGLE:
-          editObject.createOnMap(L, map, e.latlng);
-          break;
+      if (editObject.moving) {
+        if (lastMouseLocation) {
+          let delta = new L.LatLng(e.latlng.lat - lastMouseLocation.lat, e.latlng.lng - lastMouseLocation.lng);
+          editObject.move(L, map, delta);
+        }
+      } else {
+        switch(mode) {
+          case modeType.LINE:
+          case modeType.RECTANGLE:
+            editObject.createOnMap(L, map, e.latlng);
+            break;
+        }
       }
-    } 
+    }
+    lastMouseLocation = e.latlng;
   })
 
   $('#searchText').on('keydown', (event) => {
@@ -175,13 +172,10 @@ $(document).ready(function() {
 
   $('#map').focus();
    
-  //todo:  some quality of life features
-  // OR 1 - on editing...
-  //      - while selected - clicking a point can resize
-  //      - long click to drag item around
-  
 
   // todo:  we really want it to load to the persons actual location if we can
+
+  //refactor??
 
   //styling
   //  1 - colour scheme

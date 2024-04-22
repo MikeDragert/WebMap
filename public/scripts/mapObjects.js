@@ -16,11 +16,14 @@ export class MapObject {
   _points = [];
   _tooltipContent = TOOLTIPTEXTDEFAULT;
   _editing = false;
+  _moving = false;
   _mapElement = undefined;
   _callbacks = undefined;
+  _mouseDownTime = undefined;
 
   constructor () {
     this._editing = false;
+    this._moving = false;
   }
 
   get editingTooltip() {
@@ -41,6 +44,10 @@ export class MapObject {
   
   get editing() {
     return this._editing;
+  }
+
+  get moving() {
+    return this._moving;
   }
 
   setPoints = function(points) {
@@ -102,6 +109,15 @@ export class MapObject {
     return centerPoint;
   }
 
+  move = function(L, map, delta) {
+    this._points = this._points.map(point => {
+      point.lat += delta.lat;
+      point.lng += delta.lng;
+      return point;
+    })
+    this.createOnMap(L, map);
+  }
+
   _displayCurrentTooltipText = function() {
     // if (this._editing) {
     //   this._mapElement.getTooltip().setContent(`<strong>${this._tooltipContent }</strong>`);
@@ -147,6 +163,9 @@ export class MapObject {
       return;
     }
     this._editing = !this._editing;
+    if (!this.editing) {
+      this._moving = false;
+    }
     
     if (!this._mapElement.getTooltip()) {
       $('#map').focus();
@@ -193,15 +212,18 @@ export class MapObject {
     if (this._type = modeType.POINT) {
 
       this._mapElement = L.marker(this._points[0], { icon: new L.Icon({iconUrl: iconUrl, iconSize: [25, 41], iconAnchor: [12, 41]})});
-      this._mapElement.on('click', (e) => {
-        if (this._mapElement === e.sourceTarget) {
-
-          this.toggleEdit(L, map);
-          
-          // map.removeLayer(this._mapElement);
-          // this._mapElement = undefined;
-          // $('#map').focus();
-          // this._callbacks.removeMapObject(this);
+      this._mapElement.on('mousedown', () => {
+        this._mouseDownTime = new Date();
+      })
+      this._mapElement.on('mouseup', (e) => {
+        if (this._moving) {
+          this._moving = false;
+        } else if (new Date() - this._mouseDownTime > 500) {
+          this._moving = true;
+        } else {
+          if (this._mapElement === e.sourceTarget) {
+            this.toggleEdit(L, map);
+          }
         }
       });
 
@@ -246,62 +268,68 @@ export class MapObject {
     if (!this._mapElement) {
       return;
     }
-
-    this._mapElement.on('click', (event) => {
-      //todo: can me make markers, lines, rectangles movable by click drag?
+    this._mapElement.on('mousedown', () => {
+      this._mouseDownTime = new Date();
+    })
+    this._mapElement.on('mouseup', (event) => {
       if (this._mapElement === event.sourceTarget) {
         let stillDrawing = this._points.length !== 2;
 
         if (stillDrawing) {
           this._points.push(event.latlng);
-
           map.removeLayer(this._mapElement);          
           this._drawMapObject(L, map);
         } else {
-          if (this._editing) {
-            //did we click near a corner?
-            let objectLatLngs = [];
-            let totalPoints = 0;
-            if (this._type === modeType.LINE) {
-              objectLatLngs = this._mapElement.getLatLngs();
-              totalPoints = 2;
-            }
-            if (this._type === modeType.RECTANGLE) {
-              objectLatLngs = this._mapElement.getLatLngs()[0];
-              totalPoints = 4;
-            }
-            
-            let foundPoint = false;
-            if (objectLatLngs.length > 1) {
-              for(let index = 0; index < objectLatLngs.length; index++) {
-                if (this._pointsClose(event.latlng, objectLatLngs[index])) {
-                  let keepPoint = totalPoints === 4? (index + 2) % totalPoints : (index + 1) % totalPoints;
-                  this._points = [objectLatLngs[keepPoint]];
-                  foundPoint = true;
-                  break;
+          if (this._moving) {
+            this._moving = false;
+            this._callbacks.setIgnoreNextClick();
+          } else {
+            if (this._editing) {
+              //did we click near a corner?
+              let objectLatLngs = [];
+              let totalPoints = 0;
+              if (this._type === modeType.LINE) {
+                objectLatLngs = this._mapElement.getLatLngs();
+                totalPoints = 2;
+              }
+              if (this._type === modeType.RECTANGLE) {
+                objectLatLngs = this._mapElement.getLatLngs()[0];
+                totalPoints = 4;
+              }
+              
+              let foundPoint = false;
+              if (objectLatLngs.length > 1) {
+                for(let index = 0; index < objectLatLngs.length; index++) {
+                  if (this._pointsClose(event.latlng, objectLatLngs[index])) {
+                    let keepPoint = totalPoints === 4? (index + 2) % totalPoints : (index + 1) % totalPoints;
+                    this._points = [objectLatLngs[keepPoint]];
+                    foundPoint = true;
+                    break;
+                  }
                 }
               }
-            }
 
-            map.removeLayer(this._mapElement);  
-            if (foundPoint) {
-              this._drawMapObject(L, map, event.latlng);
+              if (foundPoint) {                
+                this.createOnMap(L, map, event.latlng)
+              } else if (new Date() - this._mouseDownTime > 500) {
+                this._moving = true;
+                this._callbacks.setIgnoreNextClick();
+              } else {
+                this.toggleEdit(L, map);
+                this._callbacks.setIgnoreNextClick();
+              }
             } else {
               this.toggleEdit(L, map);
             }
           }
-          else {
-            this.toggleEdit(L, map);
-          }
         }
       }
-      this._callbacks.setIgnoreNextClick();
+      
     });
 
     if (lastMapElement) {
       map.removeLayer(lastMapElement);
     }
-    
     this._mapElement.addTo(map);
     this._createTooltip(L, map);
   }

@@ -165,6 +165,13 @@ export class MapObject {
             point2.lng <= (point1.lng + POINTCLICKBOUNDS); 
   }
 
+  removeFromMap = function(map) {
+    if (this._mapElement) {
+      map.removeLayer(this._mapElement);
+      this._mapElement = undefined;
+    }
+  }
+
   _createMarker = function(L, map) {
     if (this._points.length < 1) {
       return;
@@ -308,6 +315,9 @@ export class Line extends MapObject {
     this._tooltipContent = tooltipContent;
     this._editingSize = this._points.length < 2;
     this._callbacks = callbacks;
+    if (this._points.length < 2) {
+      this._editingSize = true;
+    }
   }
 }
 
@@ -319,5 +329,8 @@ export class Rectangle extends MapObject {
     this._tooltipContent = tooltipContent;
     this._editingSize = this._points.length < 2;
     this._callbacks = callbacks;
+    if (this._points.length < 2) {
+      this._editingSize = true;
+    }
   }
 }

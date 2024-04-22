@@ -45,6 +45,10 @@ const handleKey = function(keyEvent) {
   if (currentObjectEditing) {
     if ((keyEvent.keyCode === 8) || (keyEvent.keyCode === 127)) {
       currentObjectEditing.removeLastCharFromTooltipContent();       
+    } else if (keyEvent.keyCode === 27) {
+      console.log('escape');
+      currentObjectEditing.removeFromMap(map);
+      removeMapObject(currentObjectEditing);
     } else if (keyEvent.keyCode === 13) {
       currentObjectEditing.addCharToTooltipContent("<br>"); 
     } else if (keyEvent.keyCode === 32) {

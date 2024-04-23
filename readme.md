@@ -34,6 +34,12 @@ The following are notes and ideas for future:
 - It would be good to have handles (small squares) on the end/corners of the currently editing map item.
 - It would be good to treat a click on the map that is very close to an object, as if it was an actual click on the object.  This would make it easier to select lines.
 
+# installation
+
+- run npm i
+- you may want to install "nodemon" as well
+- with nodemon
+  - "npm run local" to run
 
 # Requirements
 
@@ -41,6 +47,7 @@ This was create with node.  The following npm packages are requied.
  - express: 4.19.2
  - jquery: 3.7.1
  - leaflet: 1.9.4
+ - nodemon: 3.1.0
 
  # Screenshot
 

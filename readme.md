@@ -39,60 +39,6 @@ The following are notes and ideas for future:
 
 # Follow-up Notes
 
-Imagine following scenario.  We have been asked allow for multiple features to be associated with a block of text and to allow for multiple text blocks to be associated with a feature. 
-
-The current design assumes one text block per map item in a 1-1 relationship.  This allowed a simpler design by having a mapOjbect class that contained one and only one text block.  However, we are not being asked to use a many to many relationship instead.
-
-We would start by changing the program to keep two seperate lists.  Right now it has a list of map objects (and the text is included in that).  Instead the text blocks would be removed from the mapObject, and instead create as separate objects (noting the latitude, longitude of the text block) and saved in a separate list.
-
-Each map object will need to keep a list of text blocks that are associated with it.  And each text block will need to keep a list of map objects that it is associated with.  These two lists will need to be kept in sync.  This adds extra complexity to the program to manage.  Consider the following use cases.
-
-Use cases:
-
-Create a map object (marker, line, rectangle, etc). 
-  - We may want to auto create a marker. It is expected most map objects will have a text box.  If not, then they would have to delete the auto text box.
-    - In this case, the program would create the text box as well.
-    - The new map object adds the text box to it's list
-    - The text box adds the map object to it's list
-
-Create a new text box
-  - Users will need to be able to create a new text box
-  - this text box would not be associated with any map object
-
-Join a map object to a text box (or vice versa)
-  - Add the text box to the map objects list
-  - Add the map object to the text boxes list
-  - Should be considered so that this is easy and intuitive
-
-Break apart map objects and text boxes
-  - Need to remove the text box from the map objects list
-  - Need to remove the map object from the text boxes list
-  - Should be considered so that this is easy and intuitive
-
-Delete a text box
-  - Go through each map object connected to the text box
-    - Remove the text box from each objects list
-  - Delete the text box from the text box list
-  - Remove display of text box from the map
-
-Delete a map object
-  - Go through each text box connected to the map object
-    - Remove the map object from each text box
-    - Consider deleting the text box too, if there are no other map objects attached
-  - Delete the map object from the map object list
-  - Remove display of map object from the map
-
-Moving Objects on the map
-  - Move map object.  We may want to move the text box (depending on what other objects it's attached to)
-  - Move text box.  This likely would not result in a move of the map object.
-
-Clicking on a text in the sidebar list
-  - This would take the user to the location of the text box 
-
---text
---diagrams
---design considerations
---approach
 
 # Installation
 

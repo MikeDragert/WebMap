@@ -11,6 +11,8 @@ const POINTCLICKBOUNDS = 0.005;  //this maybe should scale with the zoom
 const TOOLTIPTEXTDEFAULT = "Type here";
 const EDITINGCOLOR = "#2AAD27";
 const FINISHEDCOLOR = "#2A81CB";
+const FINISHEDICONURL = "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png"
+const EDITINGICONURL = "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png"
 
 //MapObject class tracks needed information on a mapObject and manages displaying on the map
 export class MapObject {
@@ -131,7 +133,6 @@ export class MapObject {
     if (!this._mapElement) {
       return;
     }
-
     this._mapElement.bindTooltip(this._tooltipContent, {
       permanent: true, 
       direction: "auto", 
@@ -164,15 +165,7 @@ export class MapObject {
     if (!this.editing) {
       this._moving = false;
     }
-    
-    if (!this._mapElement.getTooltip()) {
-      $('#map').focus();
-      map.keyboard.enable();
-      return;
-    }
-
     this.createOnMap(L, map);
-  
     if (this._editing) {
       this._callbacks.clearAllEditingObjects(this);
       map.keyboard.disable(); //todo: something weird happens here.  enabling keyboard later doesn't work until we click outside the map and then back in
@@ -197,21 +190,19 @@ export class MapObject {
       this._mapElement = undefined;
     }
   }
+  // mouse down handler
+  _mouseDownHandler = function(event) {
+    this._mouseDownTime = new Date();
+  }
 
-  // create a marker mapObject on the map
+  // create a marker mapObject on the map //this could be refactored more
   _createMarker = function(L, map) {
     if (this._points.length < 1) {
       return;
     }
     let lastMapElement = this._mapElement;
-
-    let iconUrl = "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-blue.png"
-    if (this._editing) {
-      iconUrl = "https://raw.githubusercontent.com/pointhi/leaflet-color-markers/master/img/marker-icon-green.png"
-    }
     if (this._type = modeType.POINT) {
-
-      this._mapElement = L.marker(this._points[0], { icon: new L.Icon({iconUrl: iconUrl, iconSize: [25, 41], iconAnchor: [12, 41]})});
+      this._mapElement = this._allocateMapObject(L);
       this._mapElement.on('mousedown', () => {
         this._mouseDownTime = new Date();
       })
@@ -226,9 +217,7 @@ export class MapObject {
           }
         }
       });
-
       this._mapElement.addTo(map);
-
       if (lastMapElement) {
         map.removeLayer(lastMapElement);
       }
@@ -236,20 +225,29 @@ export class MapObject {
     }
   }
 
-  // create a line or rectangle mapObject on the map
-  _drawMapObject = function(L, map, targetPoint = undefined) {
+  _getTargetDrawPoints = function(targetPoint = undefined) {
     let targetPoints = [...this._points];
     if ((targetPoints.length === 1) && (targetPoint instanceof L.LatLng)) {
       targetPoints.push(targetPoint);
     }
-    
+    return targetPoints;
+  }
+
+  // allocate a new map object from leaflet
+  _allocateMapObject = function(L, targetPoint = undefined) {
+    if (this.type === modeType.POINT) {
+      let iconUrl = this._editing? EDITINGICONURL: FINISHEDICONURL;
+      return L.marker(this._points[0], { icon: new L.Icon({iconUrl: iconUrl, iconSize: [25, 41], iconAnchor: [12, 41]})});
+    }
+
+    let targetPoints = this._getTargetDrawPoints(targetPoint);
     if (targetPoints.length < 2) {
-      return;
+      return undefined;
     }
     let color = this._editing ? EDITINGCOLOR : FINISHEDCOLOR;
-    let lastMapElement = this._mapElement;    
+
     if (this._type === modeType.LINE) {
-      this._mapElement = new L.Polyline(targetPoints, {
+      return new L.Polyline(targetPoints, {
           color: color,
           weight: LINEWEIGHT,
           opacity: LINEOPACITY,
@@ -258,17 +256,32 @@ export class MapObject {
     }
 
     if (this._type === modeType.RECTANGLE) {
-      this._mapElement = new L.Rectangle(targetPoints, {
+      return new L.Rectangle(targetPoints, {
           color: color,
           weight: LINEWEIGHT,
           opacity: LINEOPACITY,
           smoothFactor: 1
       });
     }
+    return undefined;
+  }
 
+
+  // create a line or rectangle mapObject on the map //this could be refactored more
+  _drawMapObject = function(L, map, targetPoint = undefined) {
+    let targetPoints = [...this._points];
+    if ((targetPoints.length === 1) && (targetPoint instanceof L.LatLng)) {
+      targetPoints.push(targetPoint);
+    }
+    if (targetPoints.length < 2) {
+      return;
+    }
+    let lastMapElement = this._mapElement;    
+    this._mapElement = this._allocateMapObject(L, targetPoint);
     if (!this._mapElement) {
       return;
     }
+
     this._mapElement.on('mousedown', () => {
       this._mouseDownTime = new Date();
     })
@@ -324,8 +337,7 @@ export class MapObject {
             }
           }
         }
-      }
-      
+      }      
     });
 
     if (lastMapElement) {
@@ -335,7 +347,7 @@ export class MapObject {
     this._createTooltip(L, map);
   }
 
-  // create this mapObject on the map by checking type and calling appropriate method
+  // create this mapObject on the map by checking type and calling appropriate method //this could be refactored more
   createOnMap = function(L, map, targetPoint = undefined) {
     switch(this._type) {
       case modeType.POINT:

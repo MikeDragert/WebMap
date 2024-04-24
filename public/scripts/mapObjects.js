@@ -24,8 +24,12 @@ export class MapObject {
   _mapElement = undefined;
   _callbacks = undefined;
   _mouseDownTime = undefined;
+  _L = undefined;
+  _map = undefined;
 
-  constructor () {
+  constructor (L, map) {
+    this._L = L;
+    this._map = map;
     this._editing = false;
     this._moving = false;
   }
@@ -104,7 +108,7 @@ export class MapObject {
     if (this._points.length === 1) {
       return this._points[0];
     }
-    let centerPoint = new L.LatLng(
+    let centerPoint = new this._L.LatLng(
       this._points[0].lat + (this._points[1].lat-this._points[0].lat)/2, 
       this._points[0].lng + (this._points[1].lng-this._points[0].lng)/2
     );
@@ -113,13 +117,13 @@ export class MapObject {
   }
 
   // move the mapObject by the delta supplied
-  move = function(L, map, delta) {
+  move = function(delta) {
     this._points = this._points.map(point => {
       point.lat += delta.lat;
       point.lng += delta.lng;
       return point;
     })
-    this.createOnMap(L, map);
+    this.createOnMap(this._L, this._map);
   }
 
   // display the tooltip text
@@ -129,7 +133,7 @@ export class MapObject {
   }
   
   //this displays the tooltip by binding it to the map
-  _createTooltip = function (L, map) {
+  _createTooltip = function () {
     if (!this._mapElement) {
       return;
     }
@@ -143,7 +147,7 @@ export class MapObject {
       .openTooltip()
       .on('click', (event) => {
         if (this._tooltipMatch(event)) {
-          this.toggleEdit(L, map);   
+          this.toggleEdit();   
         }
       });
   }
@@ -157,7 +161,7 @@ export class MapObject {
   }
   
   // toggle this mapObject between editing or not editing
-  toggleEdit = function(L, map) {
+  toggleEdit = function() {
     if (!this._mapElement) {
       return;
     }
@@ -165,13 +169,13 @@ export class MapObject {
     if (!this.editing) {
       this._moving = false;
     }
-    this.createOnMap(L, map);
+    this.createOnMap();
     if (this._editing) {
       this._callbacks.clearAllEditingObjects(this);
-      map.keyboard.disable(); //todo: something weird happens here.  enabling keyboard later doesn't work until we click outside the map and then back in
+      this._map.keyboard.disable(); //todo: something weird happens here.  enabling keyboard later doesn't work until we click outside the map and then back in
       return;
     } 
-    map.keyboard.enable(); 
+    this._map.keyboard.enable(); 
   }
  
   // are the two given points sufficiently close
@@ -184,60 +188,60 @@ export class MapObject {
   }
 
   // remove this drawn element from the map
-  removeFromMap = function(map) {
+  removeFromMap = function() {
     if (this._mapElement) {
-      map.removeLayer(this._mapElement);
+      this._map.removeLayer(this._mapElement);
       this._mapElement = undefined;
     }
   }
   // mouse down handler
-  _mouseDownHandler = function(event) {
-    this._mouseDownTime = new Date();
+  _mouseDownHandler = function(event, self) {
+    self._mouseDownTime = new Date();
+  }
+
+  _markerMouseUpHanlder = function(event, self) {
+    if (self._moving) {
+      self._moving = false;
+    } else if (new Date() - self._mouseDownTime > 500) {
+      self._moving = true;
+    } else {
+      if (self._mapElement === event.sourceTarget) {
+        self.toggleEdit(self._L, self._map);
+      }
+    }
   }
 
   // create a marker mapObject on the map //this could be refactored more
-  _createMarker = function(L, map) {
+  _createMarker = function() {
     if (this._points.length < 1) {
       return;
     }
     let lastMapElement = this._mapElement;
     if (this._type = modeType.POINT) {
-      this._mapElement = this._allocateMapObject(L);
-      this._mapElement.on('mousedown', () => {
-        this._mouseDownTime = new Date();
-      })
-      this._mapElement.on('mouseup', (e) => {
-        if (this._moving) {
-          this._moving = false;
-        } else if (new Date() - this._mouseDownTime > 500) {
-          this._moving = true;
-        } else {
-          if (this._mapElement === e.sourceTarget) {
-            this.toggleEdit(L, map);
-          }
-        }
-      });
-      this._mapElement.addTo(map);
+      this._mapElement = this._allocateMapObject();
+      this._mapElement.on('mousedown', (event) =>  this._mouseDownHandler(event, this));
+      this._mapElement.on('mouseup', (event) => this._markerMouseUpHanlder(event, this));
+      this._mapElement.addTo(this._map);
       if (lastMapElement) {
-        map.removeLayer(lastMapElement);
+        this._map.removeLayer(lastMapElement);
       }
-      this._createTooltip(L, map);
+      this._createTooltip();
     }
   }
 
   _getTargetDrawPoints = function(targetPoint = undefined) {
     let targetPoints = [...this._points];
-    if ((targetPoints.length === 1) && (targetPoint instanceof L.LatLng)) {
+    if ((targetPoints.length === 1) && (targetPoint instanceof this._L.LatLng)) {
       targetPoints.push(targetPoint);
     }
     return targetPoints;
   }
 
   // allocate a new map object from leaflet
-  _allocateMapObject = function(L, targetPoint = undefined) {
+  _allocateMapObject = function(targetPoint = undefined) {
     if (this.type === modeType.POINT) {
       let iconUrl = this._editing? EDITINGICONURL: FINISHEDICONURL;
-      return L.marker(this._points[0], { icon: new L.Icon({iconUrl: iconUrl, iconSize: [25, 41], iconAnchor: [12, 41]})});
+      return this._L.marker(this._points[0], { icon: new this._L.Icon({iconUrl: iconUrl, iconSize: [25, 41], iconAnchor: [12, 41]})});
     }
 
     let targetPoints = this._getTargetDrawPoints(targetPoint);
@@ -247,16 +251,15 @@ export class MapObject {
     let color = this._editing ? EDITINGCOLOR : FINISHEDCOLOR;
 
     if (this._type === modeType.LINE) {
-      return new L.Polyline(targetPoints, {
+      return new this._L.Polyline(targetPoints, {
           color: color,
           weight: LINEWEIGHT,
           opacity: LINEOPACITY,
           smoothFactor: 1
       });
     }
-
     if (this._type === modeType.RECTANGLE) {
-      return new L.Rectangle(targetPoints, {
+      return new this._L.Rectangle(targetPoints, {
           color: color,
           weight: LINEWEIGHT,
           opacity: LINEOPACITY,
@@ -266,18 +269,17 @@ export class MapObject {
     return undefined;
   }
 
-
   // create a line or rectangle mapObject on the map //this could be refactored more
-  _drawMapObject = function(L, map, targetPoint = undefined) {
+  _drawMapObject = function(targetPoint = undefined) {
     let targetPoints = [...this._points];
-    if ((targetPoints.length === 1) && (targetPoint instanceof L.LatLng)) {
+    if ((targetPoints.length === 1) && (targetPoint instanceof this._L.LatLng)) {
       targetPoints.push(targetPoint);
     }
     if (targetPoints.length < 2) {
       return;
     }
     let lastMapElement = this._mapElement;    
-    this._mapElement = this._allocateMapObject(L, targetPoint);
+    this._mapElement = this._allocateMapObject(targetPoint);
     if (!this._mapElement) {
       return;
     }
@@ -291,8 +293,8 @@ export class MapObject {
 
         if (stillDrawing) {
           this._points.push(event.latlng);
-          map.removeLayer(this._mapElement);          
-          this._drawMapObject(L, map);
+          this._map.removeLayer(this._mapElement);          
+          this._drawMapObject();
         } else {
           if (this._moving) {
             this._moving = false;
@@ -324,16 +326,16 @@ export class MapObject {
               }
 
               if (foundPoint) {                
-                this.createOnMap(L, map, event.latlng)
+                this.createOnMap(event.latlng)
               } else if (new Date() - this._mouseDownTime > 500) {
                 this._moving = true;
                 this._callbacks.setIgnoreNextClick();
               } else {
-                this.toggleEdit(L, map);
+                this.toggleEdit();
                 this._callbacks.setIgnoreNextClick();
               }
             } else {
-              this.toggleEdit(L, map);
+              this.toggleEdit();
             }
           }
         }
@@ -341,21 +343,21 @@ export class MapObject {
     });
 
     if (lastMapElement) {
-      map.removeLayer(lastMapElement);
+      this._map.removeLayer(lastMapElement);
     }
-    this._mapElement.addTo(map);
-    this._createTooltip(L, map);
+    this._mapElement.addTo(this._map);
+    this._createTooltip();
   }
 
   // create this mapObject on the map by checking type and calling appropriate method //this could be refactored more
-  createOnMap = function(L, map, targetPoint = undefined) {
+  createOnMap = function(targetPoint = undefined) {
     switch(this._type) {
       case modeType.POINT:
-        this._createMarker(L, map);
+        this._createMarker();
         return;
       case modeType.LINE:
       case modeType.RECTANGLE:
-        this._drawMapObject(L, map, targetPoint);
+        this._drawMapObject(targetPoint);
         return;
     }
   }
@@ -363,8 +365,8 @@ export class MapObject {
 
 // Marker mapObject
 export class Marker extends MapObject {
-  constructor (points, callbacks, tooltipContent = TOOLTIPTEXTDEFAULT) {
-    super();
+  constructor (L, map, points, callbacks, tooltipContent = TOOLTIPTEXTDEFAULT) {
+    super(L, map);
     this._type = modeType.POINT;
     this._points = points;
     this._tooltipContent = tooltipContent;
@@ -375,8 +377,8 @@ export class Marker extends MapObject {
 
 // Line mapObject
 export class Line extends MapObject {
-  constructor (points, callbacks, tooltipContent = TOOLTIPTEXTDEFAULT) {
-    super();
+  constructor (L, map, points, callbacks, tooltipContent = TOOLTIPTEXTDEFAULT) {
+    super(L, map);
     this._type = modeType.LINE;
     this._points = points;
     this._tooltipContent = tooltipContent;
@@ -387,8 +389,8 @@ export class Line extends MapObject {
 
 // Rectangle mapObject
 export class Rectangle extends MapObject {
-  constructor (points, callbacks, tooltipContent = TOOLTIPTEXTDEFAULT) {
-    super();
+  constructor (L, map, points, callbacks, tooltipContent = TOOLTIPTEXTDEFAULT) {
+    super(L, map);
     this._type = modeType.RECTANGLE;
     this._points = points;
     this._tooltipContent = tooltipContent;

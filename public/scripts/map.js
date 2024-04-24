@@ -56,7 +56,7 @@ const getCurrentEditingObject = function() {
 const clearAllEditingObjects = function(exception = undefined) {
   mapObjects.forEach( mapObject => {
     if ((mapObject !== exception) && (mapObject.editing)) {
-      mapObject.toggleEdit(L, map);
+      mapObject.toggleEdit();
     }
   })
 }
@@ -67,7 +67,7 @@ const removeMapObject = function(removeObject) {
   displayMapObjects();
 }
 
-// key handler
+// document key handler
 const handleKey = function(keyEvent) {
   let currentObjectEditing = getCurrentEditingObject();
   if (currentObjectEditing) {
@@ -75,14 +75,14 @@ const handleKey = function(keyEvent) {
       currentObjectEditing.removeLastCharFromTooltipContent();       
     } else if (keyEvent.keyCode === 46) {
       removeMapObject(currentObjectEditing);     
-      currentObjectEditing.removeFromMap(map);
+      currentObjectEditing.removeFromMap();
     } else if (keyEvent.keyCode === 27) {
-      currentObjectEditing.removeFromMap(map);
+      currentObjectEditing.removeFromMap();
       removeMapObject(currentObjectEditing);
     } else if ((keyEvent.keyCode === 13) && (keyEvent.shiftKey)) {
       currentObjectEditing.addCharToTooltipContent("<br>"); 
     } else if (keyEvent.keyCode === 13) {
-      currentObjectEditing.toggleEdit(L, map);   
+      currentObjectEditing.toggleEdit();   
     } else if (keyEvent.keyCode === 32) {
       keyEvent.stopPropagation();
       keyEvent.preventDefault();
@@ -147,6 +147,7 @@ $(document).ready(function() {
       attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a>'
   }).addTo(map);
 
+  // map onclick handler
   map.on('click', (e) => {
     if (ignoreNextClick) {
       ignoreNextClick = false;
@@ -155,38 +156,39 @@ $(document).ready(function() {
     switch(mode) {
       case modeType.POINT:
         clearAllEditingObjects();
-        mapObjects.push(new Marker([e.latlng], { clearAllEditingObjects , removeMapObject, setIgnoreNextClick, displayMapObjects} ));
-        mapObjects[mapObjects.length-1].createOnMap(L, map);
+        mapObjects.push(new Marker(L, map, [e.latlng], { clearAllEditingObjects , removeMapObject, setIgnoreNextClick, displayMapObjects} ));
+        mapObjects[mapObjects.length-1].createOnMap();
         displayMapObjects();
         break;
       case modeType.LINE:
         clearAllEditingObjects();
-        mapObjects.push(new Line([e.latlng], { clearAllEditingObjects , removeMapObject, setIgnoreNextClick, displayMapObjects} ));
-        mapObjects[mapObjects.length-1].createOnMap(L, map, e.latlng);
+        mapObjects.push(new Line(L, map, [e.latlng], { clearAllEditingObjects , removeMapObject, setIgnoreNextClick, displayMapObjects} ));
+        mapObjects[mapObjects.length-1].createOnMap(e.latlng);
         displayMapObjects();
         break;
       case modeType.RECTANGLE:
         clearAllEditingObjects();
-        mapObjects.push(new Rectangle([e.latlng], { clearAllEditingObjects , removeMapObject, setIgnoreNextClick, displayMapObjects} ));
-        mapObjects[mapObjects.length-1].createOnMap(L, map, e.latlng);
+        mapObjects.push(new Rectangle(L, map, [e.latlng], { clearAllEditingObjects , removeMapObject, setIgnoreNextClick, displayMapObjects} ));
+        mapObjects[mapObjects.length-1].createOnMap(e.latlng);
         displayMapObjects();
         break;
     }
   })
   
+  // map mousemove handler
   map.on('mousemove', (e) => {
     let editObject = getCurrentEditingObject();
     if (editObject) {
       if (editObject.moving) {
         if (lastMouseLocation) {
           let delta = new L.LatLng(e.latlng.lat - lastMouseLocation.lat, e.latlng.lng - lastMouseLocation.lng);
-          editObject.move(L, map, delta);
+          editObject.move(delta);
         }
       } else {
         switch(mode) {
           case modeType.LINE:
           case modeType.RECTANGLE:
-            editObject.createOnMap(L, map, e.latlng);
+            editObject.createOnMap(e.latlng);
             break;
         }
       }
@@ -194,6 +196,7 @@ $(document).ready(function() {
     lastMouseLocation = e.latlng;
   })
 
+  // search box key handler
   $('#searchText').on('keydown', (event) => {
     if (event.keyCode === 13) {
       let searchText = $('#searchText').val().toLowerCase();

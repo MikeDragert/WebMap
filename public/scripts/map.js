@@ -1,4 +1,7 @@
-import {modeType, Marker, Line, Rectangle } from './mapObjects.js';
+import { modeType } from './mapObjects.js';
+import { Marker} from './Marker.js';
+import { Line} from './Line.js';
+import { Rectangle} from './Rectangle.js';
 
 let map = undefined;
 let mapObjects = [];

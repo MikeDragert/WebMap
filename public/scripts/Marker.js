@@ -29,7 +29,7 @@ export class Marker extends MapObject {
       self._moving = true;
     } else {
       if (self._mapElement === event.sourceTarget) {
-        self.toggleEdit(self._L, self._map);
+        self.toggleEdit();
       }
     }
   }

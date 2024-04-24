@@ -2,6 +2,7 @@ import { modeType } from './mapObjects.js';
 import { Marker} from './Marker.js';
 import { Line} from './Line.js';
 import { Rectangle} from './Rectangle.js';
+import { TwoPointObject } from './TwoPointOjbect.js';
 
 let map = undefined;
 let mapObjects = [];
@@ -188,11 +189,8 @@ $(document).ready(function() {
           editObject.move(delta);
         }
       } else {
-        switch(mode) {
-          case modeType.LINE:
-          case modeType.RECTANGLE:
-            editObject.createOnMap(e.latlng);
-            break;
+        if (editObject instanceof TwoPointObject) {
+          editObject.createOnMap(e.latlng);
         }
       }
     }

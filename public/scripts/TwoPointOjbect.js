@@ -64,7 +64,7 @@ export class TwoPointObject extends MapObject {
 
   // try to determine if a corner was clicked on
   // and if so, what is the point that we want to keep on the object
-  _mouseGetIndexOfCornerClicked = function(self, location) {
+  _mouseFindCornerClicked = function(self, location) {
     let objectLatLngs = [];
     if (self._type === modeType.LINE) {
       objectLatLngs = self._mapElement.getLatLngs();
@@ -101,7 +101,7 @@ export class TwoPointObject extends MapObject {
           self._mouseFinishMoving(self);
         } else {
           if (self._editing) {
-            let {foundCorner, keepPoint} = self._mouseGetIndexOfCornerClicked(self, event.latlng);
+            let {foundCorner, keepPoint} = self._mouseFindCornerClicked(self, event.latlng);
             if (foundCorner) {
               self._points = [keepPoint];
               self.createOnMap(event.latlng)
